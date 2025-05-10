@@ -1,5 +1,12 @@
+#Legenda:   to -> takeoff, decolagem
+#           ld -> landing, pouso
+#           zf -> zero fuel, sem combustível
+
+#=======================
+#DEFINIÇÃO DE FUNÇÕES ==
+#=======================
 # Ainda vai receber números mais realísticos, mas o que importa é que será uma função!
-def cg_to_max_and_min(weight_to):
+def max_and_min_cg_to(weight_to):
     max = 34
     min = 7
     if(weight_to>62500):
@@ -9,7 +16,7 @@ def cg_to_max_and_min(weight_to):
     return [min, max]
 
 # Ainda vai receber números mais realísticos, mas o que importa é que será uma função!
-def cg_ld_max_and_min(weight_ld):
+def max_and_min_cg_ld(weight_ld):
     max = 34
     min = 7
     if(weight_ld>54000):
@@ -19,7 +26,7 @@ def cg_ld_max_and_min(weight_ld):
     return [min, max]
 
 # Ainda vai receber números mais realísticos, mas o que importa é que será uma função!
-def cg_zf_max_and_min(weight_zf):
+def max_and_min_cg_zf(weight_zf):
     max = 34
     min = 7
     if(weight_zf>52000):
@@ -35,7 +42,13 @@ def arm_fuel(total_fuel_weight):
     cg_tank_empty = 25
     return cg_tank_empty+(cg_full_tank_weight-cg_tank_empty)*(total_fuel_weight/full_tank_weight)
 
-#Parâmetros do problema/enunciado
+# Ainda falta implementar, mas o que importa é que será uma função. Seu objetivo será testar se o resultado do Gurobi realmente é feasible
+def is_solution_realy_feasible(x_a_1,x_a_2,x_a_3,x_c_1,x_c_2,x_c_3,x_i_1,x_i_2,x_i_3,x_aft_cargo,x_fwd_cargo):
+    return false
+
+#===================================
+#PARÂMETROS DO PROBLEMA/ENUNCIADO ==
+#===================================
 # Ainda vai receber números mais realísticos, mas o que importa é que serão dados fixos!
 bow = 30000 #Basic Operational Weight - kg
 arm_bow = 26 #Braço do bow - m
@@ -59,7 +72,9 @@ m_3 = 50 #Número máximo de assentos na cabine 3
 m_aft_cargo = 2500 #Peso máximo limite estrutural cargo dianteiro - kg
 m_fwd_cargo = 3000 #Peso máximo limite estrutural cargo traseiro - kg
 
-#Variáveis, que serão buscadas pelo Gurobi!
+#=================================================
+#VARIÁVEIS DO MODELO, A SER BUSCADO PELO GUROBI ==
+#=================================================
 x_a_1 = 10 #Número de adultos sentados na cabine 1
 x_a_2 = 10 #Número de adultos sentados na cabine 2
 x_a_3 = 10 #Número de adultos sentados na cabine 3
@@ -72,7 +87,9 @@ x_i_3 = 1 #Número de bebês sentados na cabine 3
 x_aft_cargo = 10 #Número de malas no porão dianteiro
 x_fwd_cargo = 20 #Número de malas no porão traseiro
 
-#Parâmetros calculados
+#==========================================================
+#PARÂMETROS CALCULADOS A PARTIR DAS VARI[AVEIS DO MODELO ==
+#==========================================================
 weight_to = bow+fuel_trip+fuel_reserve+   x_a_1*w_avg_a+x_c_1*w_avg_c+x_i_1*w_avg_i+       x_a_2*w_avg_a+x_c_2*w_avg_c+x_i_2*w_avg_i   + x_a_3*w_avg_a+x_c_3*w_avg_c+x_i_3*w_avg_i   +(x_aft_cargo+x_fwd_cargo)*w_lug
 weight_ld = bow+fuel_reserve+   x_a_1*w_avg_a+x_c_1*w_avg_c+x_i_1*w_avg_i+       x_a_2*w_avg_a+x_c_2*w_avg_c+x_i_2*w_avg_i   + x_a_3*w_avg_a+x_c_3*w_avg_c+x_i_3*w_avg_i   +(x_aft_cargo+x_fwd_cargo)*w_lug
 weight_zf = bow+   x_a_1*w_avg_a+x_c_1*w_avg_c+x_i_1*w_avg_i+       x_a_2*w_avg_a+x_c_2*w_avg_c+x_i_2*w_avg_i   + x_a_3*w_avg_a+x_c_3*w_avg_c+x_i_3*w_avg_i   +(x_aft_cargo+x_fwd_cargo)*w_lug
@@ -81,17 +98,21 @@ cg_to = (bow*arm_bow+(fuel_trip+fuel_reserve)*arm_fuel(fuel_trip+fuel_reserve)+(
 cg_ld = (bow*arm_bow+(fuel_reserve)*arm_fuel(fuel_reserve)+(x_a_1*w_avg_a+x_c_1*w_avg_c+x_i_1*w_avg_i)*arm_cabin_1+       (x_a_2*w_avg_a+x_c_2*w_avg_c+x_i_2*w_avg_i)*arm_cabin_2     + (x_a_3*w_avg_a+x_c_3*w_avg_c+x_i_3*w_avg_i)*arm_cabin_3    +    x_aft_cargo*w_lug*arm_aft_cargo + x_fwd_cargo*w_lug*arm_fwd_cargo )/weight_ld
 cg_zf = (bow*arm_bow+(x_a_1*w_avg_a+x_c_1*w_avg_c+x_i_1*w_avg_i)*arm_cabin_1+       (x_a_2*w_avg_a+x_c_2*w_avg_c+x_i_2*w_avg_i)*arm_cabin_2     + (x_a_3*w_avg_a+x_c_3*w_avg_c+x_i_3*w_avg_i)*arm_cabin_3    +    x_aft_cargo*w_lug*arm_aft_cargo + x_fwd_cargo*w_lug*arm_fwd_cargo )/weight_zf
 
-[cg_to_max, cg_to_min] = cg_to_max_and_min(weight_to)
-[cg_ld_max, cg_ld_min] = cg_ld_max_and_min(weight_ld)
-[cg_zf_max, cg_zf_min] = cg_zf_max_and_min(weight_zf)
+[cg_to_max, cg_to_min] = max_and_min_cg_to(weight_to)
+[cg_ld_max, cg_ld_min] = max_and_min_cg_ld(weight_ld)
+[cg_zf_max, cg_zf_min] = max_and_min_cg_zf(weight_zf)
 
 
-#Função objetivo
+#========================
+#FUNÇÃO MULTI-OBJETIVO ==
+#========================
 #maximize
 f = (cg_to+cg_ld)/2
 
 
-#Restrições
+#=======================
+#RESTRIÇÕES DO MODELO ==
+#=======================
 x_a_1+x_a_2+x_a_3=n_a
 x_c_1+x_c_2+x_c_3=n_c
 x_i_1+x_i_2+x_i_3=n_i
